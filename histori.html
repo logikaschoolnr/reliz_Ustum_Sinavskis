@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Марсіанська Експедиція: Історія</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background: radial-gradient(circle, #1a100d 0%, #160d0a 100%);
+            font-family: 'Roboto Mono', monospace;
+            display: flex; justify-content: center; align-items: center; color: #fff;
+        }
+
+        .tablet-body {
+            width: 1800px; height: 925px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(0,0,0,0.1) 100%), 
+                        repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 3px), #2a2a2a;
+            border-radius: 25px; border: 4px solid #3d3d3d;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 40px rgba(0,0,0,0.5);
+            padding: 20px 50px 20px 90px; box-sizing: border-box;
+            position: relative; display: flex; flex-direction: column;
+        }
+
+        .tablet-screen {
+            flex-grow: 1; background: black; border-radius: 10px; position: relative;
+            overflow: hidden; display: flex; flex-direction: column;
+            border: 15px solid #444343;
+        }
+
+        .content-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; z-index: 10;
+        }
+
+        .story-image {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0;
+            animation: fadeIn 2s ease-in forwards;
+            animation-delay: 2s;
+        }
+
+        .vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none; z-index: 12; opacity: 0;
+            animation: fadeIn 2s ease-in forwards; animation-delay: 2s;
+        }
+
+        .dialog-box {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            height: 140px; 
+            padding: 15px 20px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 4px solid #855000;
+            color: #855000; 
+            font-size: 18px; 
+            opacity: 0; z-index: 20;
+            animation: fadeIn 1.5s ease-in forwards;
+            animation-delay: 6s;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* Стиль для кнопки повернення */
+        .menu-button {
+            background: #ff7b00;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            align-self: flex-start;
+            border-radius: 4px;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .menu-button:hover {
+            background: #ffa64d;
+            box-shadow: 0 0 15px #ff7b00;
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        .dialog-box::-webkit-scrollbar { width: 8px; }
+        .dialog-box::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.5); }
+        .dialog-box::-webkit-scrollbar-thumb { background: #ff7b00; border-radius: 4px; }
+
+        .dialog-line { margin-bottom: 8px; line-height: 1.4; text-align: left; }
+        
+        .aster-text { color: #80d4ff; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #noise-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 30; pointer-events: none; opacity: 0.12; }
+        .scanline { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05); z-index: 35; animation: scanline-move 1.5s linear infinite; }
+        @keyframes scanline-move { 0% { top: -10px; } 100% { top: 100%; } }
+
+        .tablet-button { width: 60px; height: 80px; background: #333; border-radius: 5px; border: 5px solid #555; position: absolute; bottom: 430px; left: 43px; transform: translateX(-50%); cursor: pointer; z-index: 100; transition: 0.1s; }
+        .tablet-button:hover { background: #6d6d6d; }
+        .tablet-button:active { transform: translateX(-50%) scale(0.95); }
+        .tablet-camera { width: 8px; height: 8px; background: #111; border-radius: 50%; position: absolute; top: 6px; left: 50%; transform: translateX(-50%); }
+        .tablet-button1 { width: 7px; height: 350px; background: #444; border-radius: 5px; position: absolute; bottom: 300px; right: 6px; transform: translateX(-50%); border: 5px solid #6e6d6d; }
+    </style>
+</head>
+<body>
+    <div class="tablet-body">
+        <div class="tablet-camera"></div>
+        <div class="tablet-screen">
+            <div class="content-container">
+                <img src="hono.png" alt="Mars View" class="story-image">
+                <div class="vignette"></div>
+                <div class="dialog-box" id="dialog-container"></div>
+            </div>
+            <canvas id="noise-canvas"></canvas>
+            <div class="scanline"></div>
+        </div>
+        <div class="tablet-button" id="main-tablet-btn"></div>
+        <div class="tablet-button1"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('noise-canvas');
+        const ctx = canvas.getContext('2d');
+        function noise() {
+            canvas.width = canvas.offsetWidth / 2;
+            canvas.height = canvas.offsetHeight / 2;
+            const idata = ctx.createImageData(canvas.width, canvas.height);
+            const buffer32 = new Uint32Array(idata.data.buffer);
+            function render() {
+                for (let i = 0; i < buffer32.length; i++) {
+                    buffer32[i] = Math.random() < 0.4 ? 0x22ffffff : 0x00000000;
+                }
+                ctx.putImageData(idata, 0, 0);
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+        noise();
+
+        const savedName = localStorage.getItem('userName') || localStorage.getItem('name') || 'Гравець';
+        const playerName = savedName;
+
+        const dialogContainer = document.getElementById('dialog-container');
+        
+        const messages = [
+            { sender: "player", text: `> [${playerName}]: !!!!!!!!!!!!!!` },
+            { sender: "player", text: `> [${playerName}]: ЩО!!` },
+            { sender: "player", text: `> [${playerName}]: ЩО ТУТ СТАЛОСЯ!` },
+            { sender: "player", text: `> [${playerName}]: На вигляд виглядає ніби метеорити впали` },
+            { sender: "player", text: `> [${playerName}]: Цікаво щож тут сталося....` },
+            { sender: "#####", text: "> [#####]$#%#$%$%#$^%$$@^$%" },
+            { sender: "player", text: `> [${playerName}]: Га?` },
+            { sender: "#####", text: "> [#####];%№?;№?%;№?№;%?:;?" },
+            { sender: "#####", text: "> [#####]*?%?;:%№;?%?:№;№%?№;%?№;%?№" },
+            { sender: "aster", text: "> [Астер]: еееейййй" },
+            { sender: "aster", text: "> [Астер]: Це я Астер ти ще мене не забув" },
+            { sender: "aster", text: "> [Астер]: Я твій Асистент" },
+            { sender: "player", text: `> [${playerName}]: Так, я памятаю` },
+            { sender: "aster", text: "> [Астер]: Чудово!!!" },
+            { sender: "player", text: `> [${playerName}]: ...` },
+            { sender: "aster", text: "> [Астер]: ..." },
+            { sender: "player", text: `> [${playerName}]: слухай не міг би ти сказати що тут Сталося!` },
+            { sender: "aster", text: "> [Астер]: Га, а тут..., якшо чесно я не дуже памятаю" },
+            { sender: "aster", text: "> [Астер]: Я памятаю як до мене говорив мій творець і потім всі замовчали" },
+            { sender: "aster", text: "> [Астер]: А потім я зовсім не памятаю." },
+            { sender: "player", text: `> [${playerName}]: Зрозуміло` },
+            { sender: "aster", text: "> [Астер]: Але я відчуваю як мене тяне на базу" },
+            { sender: "aster", text: "> [Астер]: Ніби магнітом." },
+            { sender: "player", text: `> [${playerName}]: Мені дали місію, "прилитіти щоб зремонтувати колонію"` }
+        ];
+
+        let messageIndex = 0;
+
+        function typeWriter(text, element, callback) {
+            let i = 0;
+            const speed = 40; 
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    dialogContainer.scrollTop = dialogContainer.scrollHeight;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    setTimeout(callback, 2000); 
+                }
+            }
+            type();
+        }
+
+        function showMenuButton() {
+            const btn = document.createElement('button');
+            btn.className = 'menu-button';
+            btn.innerText = 'Зайти назад в меню';
+            btn.onclick = () => {
+                window.location.href = 'menu.html'; // Вкажи тут файл свого меню
+            };
+            dialogContainer.appendChild(btn);
+            dialogContainer.scrollTop = dialogContainer.scrollHeight;
+        }
+
+        function startDialog() {
+            if (messageIndex < messages.length) {
+                const msgData = messages[messageIndex];
+                const newLine = document.createElement('div');
+                newLine.className = 'dialog-line';
+                
+                if (msgData.sender === "aster") {
+                    newLine.classList.add('aster-text');
+                }
+                
+                dialogContainer.appendChild(newLine);
+                
+                typeWriter(msgData.text, newLine, () => {
+                    messageIndex++;
+                    startDialog();
+                });
+            } else {
+                // КОЛИ ДІАЛОГ ЗАКІНЧИВСЯ
+                showMenuButton();
+            }
+        }
+        
+        setTimeout(startDialog, 6500);
+    </script>
+</body>
+</html>
