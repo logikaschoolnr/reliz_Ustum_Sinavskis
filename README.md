@@ -1,1 +1,0 @@
-# reliz_Ustum_Sinavskis
